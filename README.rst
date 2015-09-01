@@ -36,11 +36,11 @@ and another for chips with pins spread over an area (i.e., BGAs).
 
 You can make things like QFPs ...
 
-.. image:: pics/qfp44.png
+.. image:: pics/QFP44.png
 
 or SOICs, SSOPs TSSOPs (even with thermal pads)...
 
-.. image:: pics/ssop28.png
+.. image:: pics/SSOP28.png
 
 or slightly odder stuff like resistor networks ...
 
