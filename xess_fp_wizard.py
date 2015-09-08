@@ -106,9 +106,6 @@ class XessFpWizard(HelpfulFootprintWizardPlugin.HelpfulFootprintWizardPlugin):
             #val = values[n]
             self.parameters[name][key] = val
 
-    def _PrintParameterTable(self):
-        pass
-
     def ProcessParameters(self):
         """
         Make sure the parameters we have meet whatever expectations the
