@@ -322,6 +322,11 @@ None yet. Why not be the first?
 History
 ========
 
+0.1.1 (2015-09-08)
+---------------------
+
+* Corrected an error that arose when printing footprint parameters.
+
 0.1.0 (2015-09-01)
 ---------------------
 
