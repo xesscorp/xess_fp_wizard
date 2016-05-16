@@ -23,7 +23,7 @@ Features
 Installation
 ============
 
-Just copy `xess_fp_wizard.py` to the `kicad/kicad/bin/scripting/plugins` directory.
+Just copy `xess_fp_wizard.py` to the `kicad/share/kicad/scripting/plugins` directory.
 
 
 
