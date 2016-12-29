@@ -61,7 +61,7 @@ class XessFpWizardDrawingAids(FootprintWizardDrawingAids.FootprintWizardDrawingA
             end = self.TransformPoint(x, y + r)
 
         circle.SetLayer(self.dc['layer'])
-        circle.SetShape(pcbnew.S_CIRCLE)
+        circle.SetShape(pcbnew.PAD_SHAPE_CIRCLE)
         circle.SetStartEnd(start, end)
         self.module.Add(circle)
 
@@ -270,7 +270,7 @@ class XessPeriphPckgWizard(XessFpWizard):
         pad_extension = pads[self.pad_extension_key]
         pad_soldermask_margin = pads[self.pad_soldermask_margin_key]
         pad_paste_fill = pads['*' + self.pad_paste_fill_key] / 100.0
-        pad_shape = pcbnew.PAD_OVAL if pads['*' + self.pad_oval_key] else pcbnew.PAD_RECT
+        pad_shape = pcbnew.PAD_SHAPE_OVAL if pads['*' + self.pad_oval_key] else pcbnew.PAD_SHAPE_RECT
         pad_smd = pads['*' + self.pad_smd_key]
         pad_drill = pads[self.pad_drill_key]
 
@@ -359,7 +359,7 @@ class XessPeriphPckgWizard(XessFpWizard):
             
         # Thermal paddle.
         if paddle_enable is True:
-            t_pad = PA.PadMaker(self.module).SMDPad(paddle_width, paddle_height, shape=pcbnew.PAD_RECT)
+            t_pad = PA.PadMaker(self.module).SMDPad(paddle_width, paddle_height, shape=pcbnew.PAD_SHAPE_RECT)
             t_pad_pos = pcbnew.wxPoint(paddle_orgx, paddle_orgy)
             t_pad.SetLocalSolderMaskMargin(paddle_soldermask_margin)
             m = calc_solderpaste_margin(paddle_width, paddle_height, paddle_paste_fill)
@@ -463,7 +463,7 @@ class XessBgaPckgWizard(XessFpWizard):
         pad_soldermask_margin = pads[self.pad_soldermask_margin_key]
         pad_paste_fill = pads['*' + self.pad_paste_fill_key] / 100.0
         pad_length = pad_width
-        pad_shape = pcbnew.PAD_CIRCLE
+        pad_shape = pcbnew.PAD_SHAPE_CIRCLE
 
         outline = misc['*' + self.outline_key] / 100.0
         bevel = misc['*' + self.bevel_key] / 100.0
