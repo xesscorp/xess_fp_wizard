@@ -253,8 +253,11 @@ ___________________________________
 
 .. image:: pics/area_pad_pane.png
 
-**Pitch (e)**
-  This specifies the distance between adjacent pins in a row or column.
+**Row Pitch (e)**
+  This specifies the distance between adjacent rows of pins.
+  
+**Column Pitch (e)**
+  This specifies the distance between adjacent columns of pins.
   
 **Size (b)**
   This specifies the diameter of each copper pad.
@@ -321,6 +324,16 @@ None yet. Why not be the first?
 ========
 History
 ========
+
+0.1.3 (2017-01-14)
+---------------------
+
+* BGA row and column spacing are now individually settable.
+
+0.1.2 (2016-12-29)
+---------------------
+
+* Changed names of pad shapes to match those in pcbnew.
 
 0.1.1 (2015-09-08)
 ---------------------

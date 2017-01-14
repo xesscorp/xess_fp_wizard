@@ -61,7 +61,7 @@ class XessFpWizardDrawingAids(FootprintWizardDrawingAids.FootprintWizardDrawingA
             end = self.TransformPoint(x, y + r)
 
         circle.SetLayer(self.dc['layer'])
-        circle.SetShape(pcbnew.PAD_SHAPE_CIRCLE)
+        circle.SetShape(pcbnew.S_CIRCLE)
         circle.SetStartEnd(start, end)
         self.module.Add(circle)
 
@@ -414,7 +414,8 @@ class XessBgaPckgWizard(XessFpWizard):
     n_pads_per_row_key = '#Cols (Horizontal)'
     total_width_key = 'Width (D)'
     total_height_key = 'Height (E)'
-    pad_pitch_key = 'Pitch (e)'
+    pad_row_pitch_key = 'Row Pitch (e)'
+    pad_col_pitch_key = 'Column Pitch (e)'
     pad_width_key = 'Size (b)'
     pad_soldermask_margin_key = 'Soldermask Margin'
     pad_paste_fill_key = 'Paste Fill (%)'
@@ -429,7 +430,8 @@ class XessBgaPckgWizard(XessFpWizard):
         self.AddParam("Package", self.n_pads_per_col_key, self.uNatural, 16)
         self.AddParam("Package", self.total_width_key, self.uMM, 14)
         self.AddParam("Package", self.total_height_key, self.uMM, 14)
-        self.AddParam("Pad", self.pad_pitch_key, self.uMM, 0.8)
+        self.AddParam("Pad", self.pad_row_pitch_key, self.uMM, 0.8)
+        self.AddParam("Pad", self.pad_col_pitch_key, self.uMM, 0.8)
         self.AddParam("Pad", self.pad_width_key, self.uMM, 0.45)
         self.AddParam("Pad", self.pad_soldermask_margin_key, self.uMM, 0)
         self.AddParam("Pad", self.pad_paste_fill_key, self.uNatural, 100)
@@ -458,7 +460,8 @@ class XessBgaPckgWizard(XessFpWizard):
         total_width = pckg[self.total_width_key]
         total_height = pckg[self.total_height_key]
 
-        pad_pitch = pads[self.pad_pitch_key]
+        pad_row_pitch = pads[self.pad_row_pitch_key]
+        pad_col_pitch = pads[self.pad_col_pitch_key]
         pad_width = pads[self.pad_width_key]
         pad_soldermask_margin = pads[self.pad_soldermask_margin_key]
         pad_paste_fill = pads['*' + self.pad_paste_fill_key] / 100.0
@@ -483,7 +486,7 @@ class XessBgaPckgWizard(XessFpWizard):
                     n_x + 1)
                     
         # Draw pads.
-        array = BGAPadGridArray(pad, n_pads_per_col, n_pads_per_row, pad_pitch, pad_pitch)
+        array = BGAPadGridArray(pad, n_pads_per_col, n_pads_per_row, pad_col_pitch, pad_row_pitch)
         array.AddPadsToModule(self.draw)
 
         # Draw outline.
@@ -495,13 +498,12 @@ class XessBgaPckgWizard(XessFpWizard):
                             
         # Add corner index.
         if add_index is True:
-            offset = pad_pitch
-            self.draw.Circle(-w-offset, -h-offset, pad_pitch/2.0, filled=True)
+            self.draw.Circle(-w-pad_col_pitch, -h-pad_row_pitch, (pad_row_pitch+pad_col_pitch)/4.0, filled=True)
 
         # Add reference and value.
         text_size = pcbnew.FromMM(1.2)  # IPC nominal
 
-        text_offset = h + text_size + pad_pitch / 2.0
+        text_offset = h + text_size + pad_row_pitch / 2.0
 
         self.draw.Value(0, -text_offset, text_size)
         self.draw.Reference(0, text_offset, text_size)
