@@ -24,8 +24,7 @@
 from __future__ import division
 import pcbnew
 
-import HelpfulFootprintWizardPlugin
-import FootprintWizardDrawingAids
+import FootprintWizardBase
 import PadArray as PA
 
 from math import ceil, floor, sqrt
@@ -41,7 +40,7 @@ def calc_solderpaste_margin(w,h,fill):
     return int((a-c)/2.0)
     
     
-class XessFpWizardDrawingAids(FootprintWizardDrawingAids.FootprintWizardDrawingAids):
+class XessFpWizardDrawingAids(FootprintWizardBase.FootprintWizardDrawingAids):
 
     def Circle(self, x, y, r, filled=False):
         """
@@ -66,106 +65,13 @@ class XessFpWizardDrawingAids(FootprintWizardDrawingAids.FootprintWizardDrawingA
         self.module.Add(circle)
 
     
-class XessFpWizard(HelpfulFootprintWizardPlugin.HelpfulFootprintWizardPlugin):
-    def GetParameterPageName(self, page_n):
-        return self.page_order[page_n]
-
-    def GetParameterNames(self, page_n):
-        name = self.GetParameterPageName(page_n)
-        return self.parameter_order[name]
-
-    def GetParameterValues(self, page_n):
-        name = self.GetParameterPageName(page_n)
-        names = self.GetParameterNames(page_n)
-        values = [self.parameters[name][n] for n in names]
-        return map(lambda x: str(x), values)  # list elements as strings
-
-    def GetParameterErrors(self, page_n):
-        self.CheckParameters()
-        name = self.GetParameterPageName(page_n)
-        names = self.GetParameterNames(page_n)
-        values = [self.parameter_errors[name][n] for n in names]
-        return map(lambda x: str(x), values)  # list elements as strings
-
-    def ConvertValue(self,v):
-        try:
-            v = float(v)
-        except:
-            pass
-        if type(v) is float:
-            if ceil(v) == floor(v):
-                v = int(v)
-        return v
-
-    def SetParameterValues(self, page_n, values):
-        name = self.GetParameterPageName(page_n)
-        keys = self.GetParameterNames(page_n)
-        for n, key in enumerate(keys):
-            val = self.ConvertValue(values[n])
-            #val = self.TryConvertToFloat(values[n])
-            #val = values[n]
-            self.parameters[name][key] = val
-
-    def ProcessParameters(self):
-        """
-        Make sure the parameters we have meet whatever expectations the
-        footprint wizard has of them
-        """
-
-        self.ClearErrors()
-        self.CheckParameters()
-
-        if self._ParametersHaveErrors():
-            print "Cannot build footprint: Parameters have errors:"
-            self._PrintParameterErrors()
-            return False
-
-        self._PrintParameterTable()
-        return True
-
-    def AddParam(self, section, param, unit, default, hint=''):
-        """
-        Add a parameter with some properties.
-
-        TODO: Hints are not supported, as there is as yet nowhere to
-        put them in the KiCAD interface
-        """
-
-        val = None
-        if unit == self.uMM:
-            val = pcbnew.FromMM(default)
-        elif unit == self.uMils:
-            val = pcbnew.FromMils(default)
-        elif unit == self.uNatural:
-            val = default
-        elif unit == self.uString:
-            val = str(default)
-        elif unit == self.uBool:
-            val = "True" if default else "False"  # ugly stringing
-        else:
-            print "Warning: Unknown unit type: %s" % unit
-            return
-
-        if unit in [self.uNatural, self.uBool, self.uString]:
-            param = "*%s" % param  # star prefix for natural
-
-        if section not in self.parameters:
-            if not hasattr(self, 'page_order'):
-                self.page_order = []
-            self.page_order.append(section)
-            self.parameters[section] = {}
-            if not hasattr(self, 'parameter_order'):
-                self.parameter_order = {}
-            self.parameter_order[section] = []
-
-        self.parameters[section][param] = val
-        self.parameter_order[section].append(param)
+class XessFpWizard(FootprintWizardBase.FootprintWizard):
 
     def GetValue(self):
-        return "{}".format(self.parameters["Misc"]['*' + self.fp_name_key])
+        return "{}".format(self.parameters["Misc"][self.fp_name_key])
 
     def GetReferencePrefix(self):
-        return "{}".format(self.parameters["Misc"]['*' + self.fp_ref_key])
+        return "{}".format(self.parameters["Misc"][self.fp_ref_key])
 
         
 class XessPeriphPckgWizard(XessFpWizard):
@@ -208,8 +114,8 @@ class XessPeriphPckgWizard(XessFpWizard):
     paddle_paste_fill_key = 'Paste Fill (%)'
 
     def GenerateParameterList(self):
-        self.AddParam("Package", self.n_pads_per_row_key, self.uNatural, 11)
-        self.AddParam("Package", self.n_pads_per_col_key, self.uNatural, 11)
+        self.AddParam("Package", self.n_pads_per_row_key, self.uInteger, 11)
+        self.AddParam("Package", self.n_pads_per_col_key, self.uInteger, 11)
         self.AddParam("Package", self.total_width_key, self.uMM, 12)
         self.AddParam("Package", self.total_height_key, self.uMM, 12)
         self.AddParam("Package", self.body_width_key, self.uMM, 10)
@@ -223,7 +129,7 @@ class XessPeriphPckgWizard(XessFpWizard):
         self.AddParam("Pad", self.pad_length_key, self.uMM, 0.75)
         self.AddParam("Pad", self.pad_extension_key, self.uMM, 0.5)
         self.AddParam("Pad", self.pad_soldermask_margin_key, self.uMM, 0)
-        self.AddParam("Pad", self.pad_paste_fill_key, self.uNatural, 100)
+        self.AddParam("Pad", self.pad_paste_fill_key, self.uInteger, 100)
         self.AddParam("Pad", self.pad_drill_key, self.uMM, 1)
         self.AddParam("Paddle", self.paddle_enable_key, self.uBool, False)
         self.AddParam("Paddle", self.paddle_width_key, self.uMM, 0.0)
@@ -231,23 +137,23 @@ class XessPeriphPckgWizard(XessFpWizard):
         self.AddParam("Paddle", self.paddle_orgx_key, self.uMM, 0.0)
         self.AddParam("Paddle", self.paddle_orgy_key, self.uMM, 0.0)
         self.AddParam("Paddle", self.paddle_soldermask_margin_key, self.uMM, 0)
-        self.AddParam("Paddle", self.paddle_paste_fill_key, self.uNatural, 70)
+        self.AddParam("Paddle", self.paddle_paste_fill_key, self.uInteger, 70)
         self.AddParam("Misc", self.fp_name_key, self.uString, 'Footprint Name')
         self.AddParam("Misc", self.fp_ref_key, self.uString, 'U')
         self.AddParam("Misc", self.land_dim_key, self.uBool, False)
-        self.AddParam("Misc", self.outline_key, self.uNatural, 0)
-        self.AddParam("Misc", self.bevel_key, self.uNatural, 20)
+        self.AddParam("Misc", self.outline_key, self.uInteger, 0)
+        self.AddParam("Misc", self.bevel_key, self.uInteger, 20)
         self.AddParam("Misc", self.add_index_key, self.uBool, False)
 
     def CheckParameters(self):
 
         # self.CheckParamInt("Pad", '*'+self.n_pads_per_row_key)
         # self.CheckParamInt("Pad", '*'+self.n_pads_per_col_key)
-        self.CheckParamBool("Pad", '*' + self.pad_oval_key)
-        self.CheckParamBool("Pad", '*' + self.pad_smd_key)
-        self.CheckParamBool("Paddle", '*' + self.paddle_enable_key)
-        self.CheckParamBool("Misc", '*' + self.land_dim_key)
-        self.CheckParamBool("Misc", '*' + self.add_index_key)
+        self.CheckParam("Pad", self.pad_oval_key)
+        self.CheckParam("Pad", self.pad_smd_key)
+        self.CheckParam("Paddle", self.paddle_enable_key)
+        self.CheckParam("Misc", self.land_dim_key)
+        self.CheckParam("Misc", self.add_index_key)
 
     def BuildThisFootprint(self):
 
@@ -259,23 +165,23 @@ class XessPeriphPckgWizard(XessFpWizard):
         paddle = self.parameters["Paddle"]
 
         # Footprints can be specified using land patterns or the IC mechanical dimensions.
-        land_dim = misc['*' + self.land_dim_key]
-        outline = misc['*' + self.outline_key] / 100.0
-        bevel = misc['*' + self.bevel_key] / 100.0
-        add_index = misc['*' + self.add_index_key]
+        land_dim = misc[self.land_dim_key]
+        outline = misc[self.outline_key] / 100.0
+        bevel = misc[self.bevel_key] / 100.0
+        add_index = misc[self.add_index_key]
 
         pad_pitch = pads[self.pad_pitch_key]
         pad_width = pads[self.pad_width_key]
         pad_length = pads[self.pad_length_key]
         pad_extension = pads[self.pad_extension_key]
         pad_soldermask_margin = pads[self.pad_soldermask_margin_key]
-        pad_paste_fill = pads['*' + self.pad_paste_fill_key] / 100.0
-        pad_shape = pcbnew.PAD_SHAPE_OVAL if pads['*' + self.pad_oval_key] else pcbnew.PAD_SHAPE_RECT
-        pad_smd = pads['*' + self.pad_smd_key]
+        pad_paste_fill = pads[self.pad_paste_fill_key] / 100.0
+        pad_shape = pcbnew.PAD_SHAPE_OVAL if pads[self.pad_oval_key] else pcbnew.PAD_SHAPE_RECT
+        pad_smd = pads[self.pad_smd_key]
         pad_drill = pads[self.pad_drill_key]
 
-        n_pads_per_row = int(pckg['*' + self.n_pads_per_row_key])
-        n_pads_per_col = int(pckg['*' + self.n_pads_per_col_key])
+        n_pads_per_row = int(pckg[self.n_pads_per_row_key])
+        n_pads_per_col = int(pckg[self.n_pads_per_col_key])
         # IC epoxy package dimensions.
         body_width = pckg[self.body_width_key]
         body_height = pckg[self.body_height_key]
@@ -292,13 +198,13 @@ class XessPeriphPckgWizard(XessFpWizard):
         col_to_col_pitch = pckg[self.col_to_col_pitch_key]
         row_to_row_pitch = pckg[self.row_to_row_pitch_key]
         
-        paddle_enable = paddle['*' + self.paddle_enable_key]
+        paddle_enable = paddle[self.paddle_enable_key]
         paddle_width = paddle[self.paddle_width_key]
         paddle_height = paddle[self.paddle_height_key]
         paddle_orgx = paddle[self.paddle_orgx_key]
         paddle_orgy = paddle[self.paddle_orgy_key]
         paddle_soldermask_margin = paddle[self.paddle_soldermask_margin_key]
-        paddle_paste_fill = paddle['*' + self.paddle_paste_fill_key] / 100.0
+        paddle_paste_fill = paddle[self.paddle_paste_fill_key] / 100.0
 
         if land_dim: # For footprint land dimensions.
             pitch_adjustment = 0
@@ -426,26 +332,26 @@ class XessBgaPckgWizard(XessFpWizard):
     add_index_key = 'Add index (Y/N)'
 
     def GenerateParameterList(self):
-        self.AddParam("Package", self.n_pads_per_row_key, self.uNatural, 16)
-        self.AddParam("Package", self.n_pads_per_col_key, self.uNatural, 16)
+        self.AddParam("Package", self.n_pads_per_row_key, self.uInteger, 16)
+        self.AddParam("Package", self.n_pads_per_col_key, self.uInteger, 16)
         self.AddParam("Package", self.total_width_key, self.uMM, 14)
         self.AddParam("Package", self.total_height_key, self.uMM, 14)
         self.AddParam("Pad", self.pad_row_pitch_key, self.uMM, 0.8)
         self.AddParam("Pad", self.pad_col_pitch_key, self.uMM, 0.8)
         self.AddParam("Pad", self.pad_width_key, self.uMM, 0.45)
         self.AddParam("Pad", self.pad_soldermask_margin_key, self.uMM, 0)
-        self.AddParam("Pad", self.pad_paste_fill_key, self.uNatural, 100)
+        self.AddParam("Pad", self.pad_paste_fill_key, self.uInteger, 100)
         self.AddParam("Misc", self.fp_name_key, self.uString, 'Footprint Name')
         self.AddParam("Misc", self.fp_ref_key, self.uString, 'U')
-        self.AddParam("Misc", self.outline_key, self.uNatural, 100)
-        self.AddParam("Misc", self.bevel_key, self.uNatural, 7)
+        self.AddParam("Misc", self.outline_key, self.uInteger, 100)
+        self.AddParam("Misc", self.bevel_key, self.uInteger, 7)
         self.AddParam("Misc", self.add_index_key, self.uBool, False)
 
     def CheckParameters(self):
 
         # self.CheckParamInt("Pad", '*'+self.n_pads_per_row_key)
         # self.CheckParamInt("Pad", '*'+self.n_pads_per_col_key)
-        self.CheckParamBool("Misc", '*' + self.add_index_key)
+        self.CheckParam("Misc", self.add_index_key)
 
     def BuildThisFootprint(self):
 
@@ -455,8 +361,8 @@ class XessBgaPckgWizard(XessFpWizard):
         pckg = self.parameters["Package"]
         misc = self.parameters["Misc"]
 
-        n_pads_per_row = int(pckg['*' + self.n_pads_per_row_key])
-        n_pads_per_col = int(pckg['*' + self.n_pads_per_col_key])
+        n_pads_per_row = int(pckg[self.n_pads_per_row_key])
+        n_pads_per_col = int(pckg[self.n_pads_per_col_key])
         total_width = pckg[self.total_width_key]
         total_height = pckg[self.total_height_key]
 
@@ -464,13 +370,13 @@ class XessBgaPckgWizard(XessFpWizard):
         pad_col_pitch = pads[self.pad_col_pitch_key]
         pad_width = pads[self.pad_width_key]
         pad_soldermask_margin = pads[self.pad_soldermask_margin_key]
-        pad_paste_fill = pads['*' + self.pad_paste_fill_key] / 100.0
+        pad_paste_fill = pads[self.pad_paste_fill_key] / 100.0
         pad_length = pad_width
         pad_shape = pcbnew.PAD_SHAPE_CIRCLE
 
-        outline = misc['*' + self.outline_key] / 100.0
-        bevel = misc['*' + self.bevel_key] / 100.0
-        add_index = misc['*' + self.add_index_key]
+        outline = misc[self.outline_key] / 100.0
+        bevel = misc[self.bevel_key] / 100.0
+        add_index = misc[self.add_index_key]
 
         pad = PA.PadMaker(self.module).SMDPad(pad_width, pad_length, shape=pad_shape)
         pad.SetLayerSet(pad.SMDMask())
