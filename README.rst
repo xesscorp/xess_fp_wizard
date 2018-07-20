@@ -25,6 +25,9 @@ Installation
 
 Just copy `xess_fp_wizard.py` to the `kicad/share/kicad/scripting/plugins` directory.
 
+**This plugin is currently compatible with KiCad 5. If you're using KiCad 4, please checkout
+the `KiCad_4.0` branch and use that.**
+
 
 
 ========
@@ -325,10 +328,17 @@ None yet. Why not be the first?
 History
 ========
 
+
+0.1.4 (2017-10-04)
+---------------------
+
+* Made compatible with the Python plugin libraries of KiCad 5.
+
 0.1.3 (2017-01-14)
 ---------------------
 
 * BGA row and column spacing are now individually settable.
+* **This is the last version that's compatible with KiCad 4!**
 
 0.1.2 (2016-12-29)
 ---------------------
